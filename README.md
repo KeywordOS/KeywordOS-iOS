@@ -93,8 +93,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
 Revenue event source identity:
 
-- RevenueCat webhook: configure RevenueCat with `KeywordOS.shared.appAccountToken.uuidString` as the App User ID, and optionally send `keywordos_app_account_token` as a subscriber attribute.
-- Adapty webhook: identify the Adapty user with `KeywordOS.shared.appAccountToken`.
+- RevenueCat webhook: keep your existing RevenueCat App User ID and send `keywordos_app_account_token` as a subscriber attribute.
+- Adapty webhook: keep your existing Adapty customer user ID and send `keywordos_app_account_token` as a custom user attribute. Enable Send User Attributes in the Adapty webhook settings.
 - Apple Server Notifications V2: use `KeywordOS.shared.appAccountToken` with the purchase SDK that creates the App Store transaction. For direct StoreKit purchases, pass it in the StoreKit purchase call. For RevenueCat purchases, use `KeywordOS.shared.appAccountToken.uuidString` as the RevenueCat App User ID so Apple can carry the same UUID as the transaction `appAccountToken`.
 
 Direct StoreKit 2 purchase example. Use this only if your app handles purchases directly with StoreKit. Put it where your paywall already starts the StoreKit purchase, not in AppDelegate:
