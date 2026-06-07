@@ -91,11 +91,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
 `KeywordOS.shared.appAccountToken` is generated and persisted by the SDK the first time it is read. `start()` sends the same token to KeywordOS with the attribution data.
 
-Revenue provider identity:
+Revenue event source identity:
 
-- RevenueCat: configure RevenueCat with `KeywordOS.shared.anonymousUserId` as the App User ID, and optionally send `keywordos_app_account_token` as a subscriber attribute.
-- Adapty: identify the Adapty user with `KeywordOS.shared.appAccountToken`.
-- Direct Apple Server Notifications V2: pass `KeywordOS.shared.appAccountToken` in the StoreKit purchase call.
+- RevenueCat webhook: configure RevenueCat with `KeywordOS.shared.appAccountToken.uuidString` as the App User ID, and optionally send `keywordos_app_account_token` as a subscriber attribute.
+- Adapty webhook: identify the Adapty user with `KeywordOS.shared.appAccountToken`.
+- Apple Server Notifications V2: use `KeywordOS.shared.appAccountToken` with the purchase SDK that creates the App Store transaction. For direct StoreKit purchases, pass it in the StoreKit purchase call. For RevenueCat purchases, use `KeywordOS.shared.appAccountToken.uuidString` as the RevenueCat App User ID so Apple can carry the same UUID as the transaction `appAccountToken`.
 
 Direct StoreKit 2 purchase example. Use this only if your app handles purchases directly with StoreKit. Put it where your paywall already starts the StoreKit purchase, not in AppDelegate:
 
