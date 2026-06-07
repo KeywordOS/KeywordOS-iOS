@@ -8,7 +8,7 @@ The package is intentionally small:
 - persists an `appAccountToken`
 - fetches an AdServices attribution token on iOS when available
 - posts attribution data to `POST /sdk/attribution`
-- exposes `appAccountToken` for StoreKit 2 purchases
+- exposes `appAccountToken` for direct StoreKit 2 purchases and provider identity mapping
 
 ## Usage
 
@@ -91,7 +91,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
 `KeywordOS.shared.appAccountToken` is generated and persisted by the SDK the first time it is read. `start()` sends the same token to KeywordOS with the attribution data.
 
-StoreKit 2 purchase example. Put this where your paywall already starts the StoreKit purchase, not in AppDelegate:
+Revenue provider identity:
+
+- RevenueCat: configure RevenueCat with `KeywordOS.shared.anonymousUserId` as the App User ID, and optionally send `keywordos_app_account_token` as a subscriber attribute.
+- Adapty: identify the Adapty user with `KeywordOS.shared.appAccountToken`.
+- Direct Apple Server Notifications V2: pass `KeywordOS.shared.appAccountToken` in the StoreKit purchase call.
+
+Direct StoreKit 2 purchase example. Use this only if your app handles purchases directly with StoreKit. Put it where your paywall already starts the StoreKit purchase, not in AppDelegate:
 
 ```swift
 import KeywordOS
