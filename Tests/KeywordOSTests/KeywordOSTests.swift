@@ -1,12 +1,12 @@
 import Foundation
 import Testing
-@testable import KeywordOSSDK
+@testable import KeywordOS
 
-@Suite("KeywordOSSDK")
-struct KeywordOSSDKTests {
+@Suite("KeywordOS")
+struct KeywordOSTests {
     @Test("Persists generated identifiers")
     func persistsGeneratedIdentifiers() {
-        let suiteName = "KeywordOSSDKTests.\(UUID().uuidString)"
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
         let storage = UserDefaults(suiteName: suiteName)!
         defer { storage.removePersistentDomain(forName: suiteName) }
 
@@ -18,7 +18,7 @@ struct KeywordOSSDKTests {
 
     @Test("Requires configuration before start")
     func requiresConfigurationBeforeStart() async {
-        let suiteName = "KeywordOSSDKTests.\(UUID().uuidString)"
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
         let storage = UserDefaults(suiteName: suiteName)!
         defer { storage.removePersistentDomain(forName: suiteName) }
 

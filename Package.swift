@@ -3,24 +3,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "KeywordOSSDK",
+    name: "KeywordOS",
     platforms: [
         .iOS(.v15),
         .macOS(.v13)
     ],
     products: [
         .library(
-            name: "KeywordOSSDK",
-            targets: ["KeywordOSSDK"]
+            name: "KeywordOS",
+            targets: ["KeywordOS"]
         )
     ],
     targets: [
         .target(
-            name: "KeywordOSSDK"
+            name: "KeywordOS"
         ),
         .testTarget(
-            name: "KeywordOSSDKTests",
-            dependencies: ["KeywordOSSDK"]
+            name: "KeywordOSTests",
+            dependencies: ["KeywordOS"]
         )
     ]
 )
