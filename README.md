@@ -21,7 +21,7 @@ https://github.com/KeywordOS/KeywordOS-iOS.git
 Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.2.0")
+.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.0")
 ```
 
 SwiftUI app setup:
@@ -89,13 +89,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 }
 ```
 
-`KeywordOS.shared.appAccountToken` is generated and persisted by the SDK the first time it is read. `start()` sends the same token to KeywordOS with the attribution data.
+`KeywordOS.shared.appAccountToken` is generated and persisted by the SDK the first time it is read. `start()` sends the same token to KeywordOS with the attribution data. If your app already has a stable UUID user ID and you want Apple Server Notifications V2 to use that same identity, call `KeywordOS.shared.setAppAccountToken(existingUserId)` before `start()` and before starting the purchase SDK.
 
 Revenue event source identity:
 
 - RevenueCat webhook: keep your existing RevenueCat App User ID and send `keywordos_app_account_token` as a subscriber attribute.
 - Adapty webhook: keep your existing Adapty customer user ID and send `keywordos_app_account_token` as a custom user attribute. Enable Send User Attributes in the Adapty webhook settings.
-- Apple Server Notifications V2: use `KeywordOS.shared.appAccountToken` with the purchase SDK that creates the App Store transaction. For direct StoreKit purchases, pass it in the StoreKit purchase call. For RevenueCat purchases, use `KeywordOS.shared.appAccountToken.uuidString` as the RevenueCat App User ID so Apple can carry the same UUID as the transaction `appAccountToken`.
+- Apple Server Notifications V2: use the same UUID for KeywordOS and the purchase SDK's Apple app account token. For direct StoreKit purchases, pass it in the StoreKit purchase call. For RevenueCat purchases, the RevenueCat App User ID must be a UUID so Apple can carry it as the transaction `appAccountToken`.
 
 Direct StoreKit 2 purchase example. Use this only if your app handles purchases directly with StoreKit. Put it where your paywall already starts the StoreKit purchase, not in AppDelegate:
 
@@ -104,8 +104,10 @@ import KeywordOS
 import StoreKit
 
 func purchase(_ product: Product) async throws -> Product.PurchaseResult {
+    let appAccountToken = KeywordOS.shared.appAccountToken
+
     try await product.purchase(options: [
-        .appAccountToken(KeywordOS.shared.appAccountToken)
+        .appAccountToken(appAccountToken)
     ])
 }
 ```
@@ -120,4 +122,4 @@ swift test
 
 ## Releases
 
-Swift Package Manager consumes Git tags. Use semantic version tags such as `0.2.0`.
+Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.0`.

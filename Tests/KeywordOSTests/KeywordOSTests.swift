@@ -16,6 +16,20 @@ struct KeywordOSTests {
         #expect(sdk.appAccountToken == sdk.appAccountToken)
     }
 
+    @Test("Allows app account token override")
+    func allowsAppAccountTokenOverride() {
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
+        let storage = UserDefaults(suiteName: suiteName)!
+        defer { storage.removePersistentDomain(forName: suiteName) }
+
+        let sdk = KeywordOS(storage: storage, urlSession: .shared)
+        let token = UUID()
+
+        sdk.setAppAccountToken(token)
+
+        #expect(sdk.appAccountToken == token)
+    }
+
     @Test("Requires configuration before start")
     func requiresConfigurationBeforeStart() async {
         let suiteName = "KeywordOSTests.\(UUID().uuidString)"

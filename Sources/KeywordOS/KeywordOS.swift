@@ -66,6 +66,11 @@ public final class KeywordOS: @unchecked Sendable {
         getOrCreateAppAccountToken()
     }
 
+    public func setAppAccountToken(_ token: UUID) {
+        storage.set(token.uuidString, forKey: Self.appAccountTokenKey)
+        cachedAppAccountToken = token
+    }
+
     public convenience init() {
         self.init(storage: .standard, urlSession: .shared)
     }
