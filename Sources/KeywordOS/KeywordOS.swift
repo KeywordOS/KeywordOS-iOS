@@ -25,7 +25,7 @@ public struct KeywordOSConfiguration: Sendable {
         environment: KeywordOSEnvironment,
         apiBaseURL: URL = URL(string: "https://api.keywordos.io")!,
         bundleId: String? = Bundle.main.bundleIdentifier,
-        country: String? = Locale.current.region?.identifier
+        country: String? = KeywordOSLocale.currentRegionIdentifier
     ) {
         self.appId = appId
         self.apiKey = apiKey
@@ -88,7 +88,7 @@ public final class KeywordOS: @unchecked Sendable {
         environment: KeywordOSEnvironment,
         apiBaseURL: URL = URL(string: "https://api.keywordos.io")!,
         bundleId: String? = Bundle.main.bundleIdentifier,
-        country: String? = Locale.current.region?.identifier
+        country: String? = KeywordOSLocale.currentRegionIdentifier
     ) {
         shared.configure(
             KeywordOSConfiguration(
@@ -155,7 +155,7 @@ public final class KeywordOS: @unchecked Sendable {
         configuration: KeywordOSConfiguration,
         adServicesToken: String
     ) async throws -> KeywordOSAttributionResult {
-        var request = URLRequest(url: configuration.apiBaseURL.appending(path: "sdk/attribution"))
+        var request = URLRequest(url: configuration.apiBaseURL.appendingPathComponent("sdk/attribution"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(configuration.apiKey, forHTTPHeaderField: "X-KeywordOS-SDK-Key")
@@ -192,6 +192,20 @@ public final class KeywordOS: @unchecked Sendable {
         #endif
 
         return "adservices-unavailable"
+    }
+}
+
+public enum KeywordOSLocale {
+    public static var currentRegionIdentifier: String? {
+        #if os(iOS)
+        if #available(iOS 16.0, *) {
+            return Locale.current.region?.identifier
+        }
+
+        return Locale.current.regionCode
+        #else
+        return Locale.current.region?.identifier
+        #endif
     }
 }
 
