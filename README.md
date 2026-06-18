@@ -10,6 +10,11 @@ The package is intentionally small:
 - posts attribution data to `POST /sdk/attribution`
 - exposes `appAccountToken` for direct StoreKit 2 purchases and provider identity mapping
 
+When installed with Swift Package Manager, KeywordOS links Apple's `AdServices.framework`
+for iOS automatically. You only need to add the `KeywordOS` package/product in Xcode;
+do not add `AdServices.framework` manually unless you are using a custom non-SPM
+integration.
+
 ## Usage
 
 Add the package in Xcode:
@@ -21,7 +26,7 @@ https://github.com/KeywordOS/KeywordOS-iOS.git
 Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.1")
+.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.2")
 ```
 
 SwiftUI app setup:
@@ -122,4 +127,4 @@ swift test
 
 ## Releases
 
-Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.1`.
+Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.2`.

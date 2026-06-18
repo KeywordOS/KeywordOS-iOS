@@ -16,7 +16,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "KeywordOS"
+            name: "KeywordOS",
+            linkerSettings: [
+                .linkedFramework("AdServices", .when(platforms: [.iOS]))
+            ]
         ),
         .testTarget(
             name: "KeywordOSTests",
