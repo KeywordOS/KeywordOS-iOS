@@ -6,9 +6,10 @@ The package is intentionally small:
 
 - persists an anonymous user ID
 - persists an `appAccountToken`
+- optionally persists your app's own user ID string with `setAppUserIDToken(_:)`
 - fetches an AdServices attribution token on iOS when available
 - posts attribution data to `POST /sdk/attribution`
-- exposes `appAccountToken` for direct StoreKit 2 purchases and provider identity mapping
+- exposes `appAccountToken` for direct StoreKit 2 purchases and Apple Server Notifications V2 matching
 
 When installed with Swift Package Manager, KeywordOS links Apple's `AdServices.framework`
 for iOS automatically. You only need to add the `KeywordOS` package/product in Xcode;
@@ -26,7 +27,7 @@ https://github.com/KeywordOS/KeywordOS-iOS.git
 Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.2")
+.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.4")
 ```
 
 SwiftUI app setup:
@@ -43,6 +44,8 @@ struct MyApp: App {
             apiKey: "kos_pub_demo",
             environment: .sandbox // Change to .production before App Store release.
         )
+
+        KeywordOS.shared.setAppUserIDToken("<your_app_user_id>")
     }
 
     var body: some Scene {
@@ -81,6 +84,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             environment: .sandbox // Change to .production before App Store release.
         )
 
+        KeywordOS.shared.setAppUserIDToken("<your_app_user_id>")
+
         Task {
             do {
                 try await KeywordOS.shared.start()
@@ -94,12 +99,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 }
 ```
 
-`KeywordOS.shared.appAccountToken` is generated and persisted by the SDK the first time it is read. `start()` sends the same token to KeywordOS with the attribution data. If your app already has a stable UUID user ID and you want Apple Server Notifications V2 to use that same identity, call `KeywordOS.shared.setAppAccountToken(existingUserId)` before `start()` and before starting the purchase SDK.
+For RevenueCat or Adapty webhooks, call `KeywordOS.shared.setAppUserIDToken(userId)` before `start()`. Use the same stable string that your app already uses as the RevenueCat App User ID or Adapty customer user ID. This can be a UUID string, database ID, Firebase UID, or any other stable non-empty user ID.
+
+`KeywordOS.shared.appAccountToken` is different: it is a UUID generated and persisted by the SDK for Apple's StoreKit `appAccountToken`. Use it only when you send purchases through direct StoreKit or Apple Server Notifications V2.
 
 Revenue event source identity:
 
-- RevenueCat webhook: keep your existing RevenueCat App User ID and send `keywordos_app_account_token` as a subscriber attribute.
-- Adapty webhook: keep your existing Adapty customer user ID and send `keywordos_app_account_token` as a custom user attribute. Enable Send User Attributes in the Adapty webhook settings.
+- RevenueCat webhook: keep your existing RevenueCat App User ID and send `keywordos_app_user_id_token` as a subscriber attribute with the same string.
+- Adapty webhook: keep your existing Adapty customer user ID and send `keywordos_app_user_id_token` as a custom user attribute with the same string. Enable Send User Attributes in the Adapty webhook settings.
 - Apple Server Notifications V2: use the same UUID for KeywordOS and the purchase SDK's Apple app account token. For direct StoreKit purchases, pass it in the StoreKit purchase call. For RevenueCat purchases, the RevenueCat App User ID must be a UUID so Apple can carry it as the transaction `appAccountToken`.
 
 Direct StoreKit 2 purchase example. Use this only if your app handles purchases directly with StoreKit. Put it where your paywall already starts the StoreKit purchase, not in AppDelegate:
@@ -127,4 +134,4 @@ swift test
 
 ## Releases
 
-Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.2`.
+Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.4`.

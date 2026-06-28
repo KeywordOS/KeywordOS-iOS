@@ -30,6 +30,19 @@ struct KeywordOSTests {
         #expect(sdk.appAccountToken == token)
     }
 
+    @Test("Allows string app user ID token")
+    func allowsStringAppUserIDToken() {
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
+        let storage = UserDefaults(suiteName: suiteName)!
+        defer { storage.removePersistentDomain(forName: suiteName) }
+
+        let sdk = KeywordOS(storage: storage, urlSession: .shared)
+
+        sdk.setAppUserIDToken("user_12345")
+
+        #expect(sdk.appUserIDToken == "user_12345")
+    }
+
     @Test("Requires configuration before start")
     func requiresConfigurationBeforeStart() async {
         let suiteName = "KeywordOSTests.\(UUID().uuidString)"

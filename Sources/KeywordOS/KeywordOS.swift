@@ -43,6 +43,7 @@ public struct KeywordOSAttributionResult: Decodable, Equatable, Sendable {
     public let ok: Bool
     public let userId: String
     public let appAccountToken: UUID
+    public let appUserIDToken: String?
     public let attributed: Bool
 }
 
@@ -51,6 +52,7 @@ public final class KeywordOS: @unchecked Sendable {
 
     private static let anonymousUserIdKey = "com.keywordos.sdk.anonymousUserId"
     private static let appAccountTokenKey = "com.keywordos.sdk.appAccountToken"
+    private static let appUserIDTokenKey = "com.keywordos.sdk.appUserIDToken"
 
     private let storage: UserDefaults
     private let urlSession: URLSession
@@ -60,6 +62,7 @@ public final class KeywordOS: @unchecked Sendable {
     private var configuration: KeywordOSConfiguration?
     private var cachedAnonymousUserId: String?
     private var cachedAppAccountToken: UUID?
+    private var cachedAppUserIDToken: String?
 
     public var anonymousUserId: String {
         getOrCreateAnonymousUserId()
@@ -69,9 +72,18 @@ public final class KeywordOS: @unchecked Sendable {
         getOrCreateAppAccountToken()
     }
 
+    public var appUserIDToken: String? {
+        getAppUserIDToken()
+    }
+
     public func setAppAccountToken(_ token: UUID) {
         storage.set(token.uuidString, forKey: Self.appAccountTokenKey)
         cachedAppAccountToken = token
+    }
+
+    public func setAppUserIDToken(_ token: String) {
+        storage.set(token, forKey: Self.appUserIDTokenKey)
+        cachedAppUserIDToken = token
     }
 
     public convenience init() {
@@ -154,6 +166,16 @@ public final class KeywordOS: @unchecked Sendable {
         return created
     }
 
+    private func getAppUserIDToken() -> String? {
+        if let cachedAppUserIDToken {
+            return cachedAppUserIDToken
+        }
+
+        let existing = storage.string(forKey: Self.appUserIDTokenKey)
+        cachedAppUserIDToken = existing
+        return existing
+    }
+
     private func sendAttribution(
         configuration: KeywordOSConfiguration,
         adServicesToken: String
@@ -167,6 +189,7 @@ public final class KeywordOS: @unchecked Sendable {
                 appId: configuration.appId,
                 anonymousUserId: anonymousUserId,
                 appAccountToken: appAccountToken,
+                appUserIDToken: appUserIDToken,
                 vendorId: KeywordOSDevice.currentVendorIdentifier,
                 adServicesToken: adServicesToken,
                 bundleId: configuration.bundleId,
@@ -227,6 +250,7 @@ private struct AttributionRequest: Encodable {
     let appId: String
     let anonymousUserId: String
     let appAccountToken: UUID
+    let appUserIDToken: String?
     let vendorId: String?
     let adServicesToken: String
     let bundleId: String?
