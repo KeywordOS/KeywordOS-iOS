@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(UIKit) && os(iOS)
+import UIKit
+#endif
 
 public enum KeywordOSEnvironment: String, Codable, Sendable {
     case sandbox
@@ -164,6 +167,7 @@ public final class KeywordOS: @unchecked Sendable {
                 appId: configuration.appId,
                 anonymousUserId: anonymousUserId,
                 appAccountToken: appAccountToken,
+                vendorId: KeywordOSDevice.currentVendorIdentifier,
                 adServicesToken: adServicesToken,
                 bundleId: configuration.bundleId,
                 country: configuration.country,
@@ -209,10 +213,21 @@ public enum KeywordOSLocale {
     }
 }
 
+enum KeywordOSDevice {
+    static var currentVendorIdentifier: String? {
+        #if canImport(UIKit) && os(iOS)
+        UIDevice.current.identifierForVendor?.uuidString
+        #else
+        nil
+        #endif
+    }
+}
+
 private struct AttributionRequest: Encodable {
     let appId: String
     let anonymousUserId: String
     let appAccountToken: UUID
+    let vendorId: String?
     let adServicesToken: String
     let bundleId: String?
     let country: String?
