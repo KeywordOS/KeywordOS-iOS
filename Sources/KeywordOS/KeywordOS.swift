@@ -180,6 +180,7 @@ public final class KeywordOS: @unchecked Sendable {
         configuration: KeywordOSConfiguration,
         adServicesToken: String
     ) async throws -> KeywordOSAttributionResult {
+        let vendorId = await KeywordOSDevice.currentVendorIdentifier
         var request = URLRequest(url: configuration.apiBaseURL.appendingPathComponent("sdk/attribution"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -190,7 +191,7 @@ public final class KeywordOS: @unchecked Sendable {
                 anonymousUserId: anonymousUserId,
                 appAccountToken: appAccountToken,
                 appUserIDToken: appUserIDToken,
-                vendorId: KeywordOSDevice.currentVendorIdentifier,
+                vendorId: vendorId,
                 adServicesToken: adServicesToken,
                 bundleId: configuration.bundleId,
                 country: configuration.country,
@@ -237,6 +238,7 @@ public enum KeywordOSLocale {
 }
 
 enum KeywordOSDevice {
+    @MainActor
     static var currentVendorIdentifier: String? {
         #if canImport(UIKit) && os(iOS)
         UIDevice.current.identifierForVendor?.uuidString

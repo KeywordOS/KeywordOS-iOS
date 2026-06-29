@@ -27,7 +27,7 @@ https://github.com/KeywordOS/KeywordOS-iOS.git
 Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.4")
+.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.5")
 ```
 
 SwiftUI app setup:
@@ -134,4 +134,4 @@ swift test
 
 ## Releases
 
-Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.4`.
+Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.5`.
