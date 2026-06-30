@@ -17,6 +17,7 @@ public enum KeywordOSError: Error, Equatable {
 public struct KeywordOSConfiguration: Sendable {
     public let appId: String
     public let apiKey: String
+    public let userID: String?
     public let environment: KeywordOSEnvironment
     public let apiBaseURL: URL
     public let bundleId: String?
@@ -25,6 +26,7 @@ public struct KeywordOSConfiguration: Sendable {
     public init(
         appId: String,
         apiKey: String,
+        userID: String? = nil,
         environment: KeywordOSEnvironment,
         apiBaseURL: URL = URL(string: "https://api.keywordos.io")!,
         bundleId: String? = Bundle.main.bundleIdentifier,
@@ -32,6 +34,7 @@ public struct KeywordOSConfiguration: Sendable {
     ) {
         self.appId = appId
         self.apiKey = apiKey
+        self.userID = userID
         self.environment = environment
         self.apiBaseURL = apiBaseURL
         self.bundleId = bundleId
@@ -144,6 +147,7 @@ public final class KeywordOS: @unchecked Sendable {
     public static func configure(
         appId: String,
         apiKey: String,
+        userID: String? = nil,
         environment: KeywordOSEnvironment,
         apiBaseURL: URL = URL(string: "https://api.keywordos.io")!,
         bundleId: String? = Bundle.main.bundleIdentifier,
@@ -153,6 +157,7 @@ public final class KeywordOS: @unchecked Sendable {
             KeywordOSConfiguration(
                 appId: appId,
                 apiKey: apiKey,
+                userID: userID,
                 environment: environment,
                 apiBaseURL: apiBaseURL,
                 bundleId: bundleId,
@@ -163,6 +168,9 @@ public final class KeywordOS: @unchecked Sendable {
 
     public func configure(_ configuration: KeywordOSConfiguration) {
         self.configuration = configuration
+        if let userID = configuration.userID {
+            setAppUserIDToken(userID)
+        }
     }
 
     @discardableResult

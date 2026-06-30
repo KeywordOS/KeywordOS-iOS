@@ -43,6 +43,26 @@ struct KeywordOSTests {
         #expect(sdk.appUserIDToken == "user_12345")
     }
 
+    @Test("Allows app user ID in configuration")
+    func allowsAppUserIDInConfiguration() {
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
+        let storage = UserDefaults(suiteName: suiteName)!
+        defer { storage.removePersistentDomain(forName: suiteName) }
+
+        let sdk = KeywordOS(storage: storage, urlSession: .shared)
+
+        sdk.configure(
+            KeywordOSConfiguration(
+                appId: "app_test",
+                apiKey: "kos_pub_test",
+                userID: "user_12345",
+                environment: .sandbox
+            )
+        )
+
+        #expect(sdk.appUserIDToken == "user_12345")
+    }
+
     @Test("Captures custom product page deep links")
     func capturesCustomProductPageDeepLinks() throws {
         let suiteName = "KeywordOSTests.\(UUID().uuidString)"
@@ -80,6 +100,7 @@ struct KeywordOSTests {
             KeywordOSConfiguration(
                 appId: "app_test",
                 apiKey: "kos_pub_test",
+                userID: expectedAppUserIDToken,
                 environment: .production,
                 apiBaseURL: URL(string: "https://api.keywordos.test")!,
                 bundleId: "io.keywordos.test",
@@ -87,7 +108,6 @@ struct KeywordOSTests {
             )
         )
         sdk.setAppAccountToken(appAccountToken)
-        sdk.setAppUserIDToken(expectedAppUserIDToken)
         sdk.setCustomProductPage(
             id: "cartoon-photo",
             name: "Cartoon Photo Page",
