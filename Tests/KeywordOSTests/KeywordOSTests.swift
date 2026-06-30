@@ -43,6 +43,25 @@ struct KeywordOSTests {
         #expect(sdk.appUserIDToken == "user_12345")
     }
 
+    @Test("Captures custom product page deep links")
+    func capturesCustomProductPageDeepLinks() throws {
+        let suiteName = "KeywordOSTests.\(UUID().uuidString)"
+        let storage = UserDefaults(suiteName: suiteName)!
+        defer { storage.removePersistentDomain(forName: suiteName) }
+
+        let sdk = KeywordOS(storage: storage, urlSession: .shared)
+
+        #expect(sdk.handleDeepLink(try #require(URL(string: "keywordos-demo://cpp/cartoon-photo"))))
+        #expect(sdk.customProductPageId == "cartoon-photo")
+        #expect(sdk.customProductPageURL == "keywordos-demo://cpp/cartoon-photo")
+
+        #expect(sdk.handleDeepLink(try #require(URL(string: "https://example.com/install?keywordos_cpp=video-editor&keywordos_cpp_name=Video%20Editor"))))
+        #expect(sdk.customProductPageId == "video-editor")
+        #expect(sdk.customProductPageName == "Video Editor")
+
+        #expect(!sdk.handleDeepLink(try #require(URL(string: "https://example.com/ordinary-link"))))
+    }
+
     @Test("Sends app user ID token in attribution request")
     func sendsAppUserIDTokenInAttributionRequest() async throws {
         let suiteName = "KeywordOSTests.\(UUID().uuidString)"
@@ -69,6 +88,11 @@ struct KeywordOSTests {
         )
         sdk.setAppAccountToken(appAccountToken)
         sdk.setAppUserIDToken(expectedAppUserIDToken)
+        sdk.setCustomProductPage(
+            id: "cartoon-photo",
+            name: "Cartoon Photo Page",
+            url: URL(string: "keywordos-demo://cpp/cartoon-photo")
+        )
 
         KeywordOSMockURLProtocol.requestHandler = { request in
             #expect(request.url?.absoluteString == "https://api.keywordos.test/sdk/attribution")
@@ -85,6 +109,7 @@ struct KeywordOSTests {
                 "userId": "app_user_row",
                 "appAccountToken": appAccountToken.uuidString,
                 "appUserIDToken": expectedAppUserIDToken,
+                "customProductPageId": "cartoon-photo",
                 "attributed": true
             ]
             let responseData = try JSONSerialization.data(withJSONObject: responseBody)
@@ -105,10 +130,14 @@ struct KeywordOSTests {
         #expect(sentBody["appId"] as? String == "app_test")
         #expect(sentBody["appAccountToken"] as? String == appAccountToken.uuidString)
         #expect(sentBody["appUserIDToken"] as? String == expectedAppUserIDToken)
+        #expect(sentBody["customProductPageId"] as? String == "cartoon-photo")
+        #expect(sentBody["customProductPageName"] as? String == "Cartoon Photo Page")
+        #expect(sentBody["customProductPageURL"] as? String == "keywordos-demo://cpp/cartoon-photo")
         #expect(sentBody["bundleId"] as? String == "io.keywordos.test")
         #expect(sentBody["country"] as? String == "US")
         #expect(sentBody["environment"] as? String == "production")
         #expect(result.appUserIDToken == expectedAppUserIDToken)
+        #expect(result.customProductPageId == "cartoon-photo")
         #expect(result.appAccountToken == appAccountToken)
     }
 

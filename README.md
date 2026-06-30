@@ -8,6 +8,7 @@ The package is intentionally small:
 - persists an `appAccountToken`
 - optionally persists your app's own user ID string with `setAppUserIDToken(_:)`
 - fetches an AdServices attribution token on iOS when available
+- optionally captures Custom Product Page link context with `handleDeepLink(_:)`
 - posts attribution data to `POST /sdk/attribution`
 - exposes `appAccountToken` for direct StoreKit 2 purchases and Apple Server Notifications V2 matching
 
@@ -27,7 +28,7 @@ https://github.com/KeywordOS/KeywordOS-iOS.git
 Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.5")
+.package(url: "https://github.com/KeywordOS/KeywordOS-iOS.git", from: "0.3.6")
 ```
 
 SwiftUI app setup:
@@ -51,6 +52,9 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    KeywordOS.shared.handleDeepLink(url)
+                }
                 .task {
                     await startKeywordOS()
                 }
@@ -96,12 +100,28 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
         return true
     }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        KeywordOS.shared.handleDeepLink(url)
+        return true
+    }
 }
 ```
 
 For RevenueCat or Adapty webhooks, call `KeywordOS.shared.setAppUserIDToken(userId)` before `start()`. Use the same stable string that your app already uses as the RevenueCat App User ID or Adapty customer user ID. This can be a UUID string, database ID, Firebase UID, or any other stable non-empty user ID.
 
 `KeywordOS.shared.appAccountToken` is different: it is a UUID generated and persisted by the SDK for Apple's StoreKit `appAccountToken`. Use it only when you send purchases through direct StoreKit or Apple Server Notifications V2.
+
+Custom Product Page link matching:
+
+- Add a custom URL scheme or universal link to the app.
+- Forward opened URLs to `KeywordOS.shared.handleDeepLink(url)` from SwiftUI `.onOpenURL` or UIKit `application(_:open:options:)`.
+- Use links like `keywordos-yourapp://cpp/cartoon-photo?keywordos_cpp_name=Cartoon%20Photo`.
+- KeywordOS stores the product page ID and optional display name on the app user. This is user-level link context; App Store Connect still owns aggregate Custom Product Page reporting.
 
 Revenue event source identity:
 
@@ -134,4 +154,4 @@ swift test
 
 ## Releases
 
-Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.5`.
+Swift Package Manager consumes Git tags. Use semantic version tags such as `0.3.6`.

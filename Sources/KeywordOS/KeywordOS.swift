@@ -44,6 +44,7 @@ public struct KeywordOSAttributionResult: Decodable, Equatable, Sendable {
     public let userId: String
     public let appAccountToken: UUID
     public let appUserIDToken: String?
+    public let customProductPageId: String?
     public let attributed: Bool
 }
 
@@ -53,6 +54,9 @@ public final class KeywordOS: @unchecked Sendable {
     private static let anonymousUserIdKey = "com.keywordos.sdk.anonymousUserId"
     private static let appAccountTokenKey = "com.keywordos.sdk.appAccountToken"
     private static let appUserIDTokenKey = "com.keywordos.sdk.appUserIDToken"
+    private static let customProductPageIdKey = "com.keywordos.sdk.customProductPageId"
+    private static let customProductPageNameKey = "com.keywordos.sdk.customProductPageName"
+    private static let customProductPageURLKey = "com.keywordos.sdk.customProductPageURL"
 
     private let storage: UserDefaults
     private let urlSession: URLSession
@@ -63,6 +67,9 @@ public final class KeywordOS: @unchecked Sendable {
     private var cachedAnonymousUserId: String?
     private var cachedAppAccountToken: UUID?
     private var cachedAppUserIDToken: String?
+    private var cachedCustomProductPageId: String?
+    private var cachedCustomProductPageName: String?
+    private var cachedCustomProductPageURL: String?
 
     public var anonymousUserId: String {
         getOrCreateAnonymousUserId()
@@ -76,6 +83,18 @@ public final class KeywordOS: @unchecked Sendable {
         getAppUserIDToken()
     }
 
+    public var customProductPageId: String? {
+        getCustomProductPageId()
+    }
+
+    public var customProductPageName: String? {
+        getCustomProductPageName()
+    }
+
+    public var customProductPageURL: String? {
+        getCustomProductPageURL()
+    }
+
     public func setAppAccountToken(_ token: UUID) {
         storage.set(token.uuidString, forKey: Self.appAccountTokenKey)
         cachedAppAccountToken = token
@@ -84,6 +103,31 @@ public final class KeywordOS: @unchecked Sendable {
     public func setAppUserIDToken(_ token: String) {
         storage.set(token, forKey: Self.appUserIDTokenKey)
         cachedAppUserIDToken = token
+    }
+
+    public func setCustomProductPage(id: String, name: String? = nil, url: URL? = nil) {
+        storage.set(id, forKey: Self.customProductPageIdKey)
+        cachedCustomProductPageId = id
+
+        if let name {
+            storage.set(name, forKey: Self.customProductPageNameKey)
+            cachedCustomProductPageName = name
+        }
+
+        if let url {
+            storage.set(url.absoluteString, forKey: Self.customProductPageURLKey)
+            cachedCustomProductPageURL = url.absoluteString
+        }
+    }
+
+    @discardableResult
+    public func handleDeepLink(_ url: URL) -> Bool {
+        guard let id = Self.customProductPageId(from: url) else {
+            return false
+        }
+
+        setCustomProductPage(id: id, name: Self.customProductPageName(from: url), url: url)
+        return true
     }
 
     public convenience init() {
@@ -176,6 +220,36 @@ public final class KeywordOS: @unchecked Sendable {
         return existing
     }
 
+    private func getCustomProductPageId() -> String? {
+        if let cachedCustomProductPageId {
+            return cachedCustomProductPageId
+        }
+
+        let existing = storage.string(forKey: Self.customProductPageIdKey)
+        cachedCustomProductPageId = existing
+        return existing
+    }
+
+    private func getCustomProductPageName() -> String? {
+        if let cachedCustomProductPageName {
+            return cachedCustomProductPageName
+        }
+
+        let existing = storage.string(forKey: Self.customProductPageNameKey)
+        cachedCustomProductPageName = existing
+        return existing
+    }
+
+    private func getCustomProductPageURL() -> String? {
+        if let cachedCustomProductPageURL {
+            return cachedCustomProductPageURL
+        }
+
+        let existing = storage.string(forKey: Self.customProductPageURLKey)
+        cachedCustomProductPageURL = existing
+        return existing
+    }
+
     private func sendAttribution(
         configuration: KeywordOSConfiguration,
         adServicesToken: String
@@ -192,6 +266,9 @@ public final class KeywordOS: @unchecked Sendable {
                 appAccountToken: appAccountToken,
                 appUserIDToken: appUserIDToken,
                 vendorId: vendorId,
+                customProductPageId: customProductPageId,
+                customProductPageName: customProductPageName,
+                customProductPageURL: customProductPageURL,
                 adServicesToken: adServicesToken,
                 bundleId: configuration.bundleId,
                 country: configuration.country,
@@ -220,6 +297,49 @@ public final class KeywordOS: @unchecked Sendable {
         #endif
 
         return "adservices-unavailable"
+    }
+
+    private static func customProductPageId(from url: URL) -> String? {
+        if
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let queryValue = components.queryItems?.first(where: { item in
+                ["keywordos_cpp", "cpp", "custom_product_page_id", "product_page_id"].contains(item.name)
+            })?.value,
+            !queryValue.isEmpty
+        {
+            return queryValue
+        }
+
+        let pathComponents = url.pathComponents.filter { component in
+            component != "/"
+        }
+
+        if let cppIndex = pathComponents.firstIndex(where: { $0.lowercased() == "cpp" }),
+           pathComponents.indices.contains(cppIndex + 1) {
+            return pathComponents[cppIndex + 1]
+        }
+
+        if url.host?.lowercased() == "cpp",
+           let firstPathComponent = pathComponents.first,
+           !firstPathComponent.isEmpty {
+            return firstPathComponent
+        }
+
+        return nil
+    }
+
+    private static func customProductPageName(from url: URL) -> String? {
+        guard
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let queryValue = components.queryItems?.first(where: { item in
+                ["keywordos_cpp_name", "cpp_name", "custom_product_page_name", "product_page_name"].contains(item.name)
+            })?.value,
+            !queryValue.isEmpty
+        else {
+            return nil
+        }
+
+        return queryValue
     }
 }
 
@@ -254,6 +374,9 @@ private struct AttributionRequest: Encodable {
     let appAccountToken: UUID
     let appUserIDToken: String?
     let vendorId: String?
+    let customProductPageId: String?
+    let customProductPageName: String?
+    let customProductPageURL: String?
     let adServicesToken: String
     let bundleId: String?
     let country: String?
